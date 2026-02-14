@@ -85,7 +85,7 @@ turkish-ai-agent/
 📄 README.md - Performance Section
 markdown## Performance
 
-Benchmark results on RTX 4070 Ti SUPER with 4-bit quantization:
+Benchmark results on RTX 4060 Ti SUPER with 4-bit quantization:
 
 ### Response Times
 - **Simple Chat**: ~7-8 seconds
