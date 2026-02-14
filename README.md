@@ -81,11 +81,27 @@ turkish-ai-agent/
 └── examples/            # Usage examples
 ```
 
-## Performance
+İşte güncellenmiş performans bölümü, gerçek test sonuçlarına göre:
+📄 README.md - Performance Section
+markdown## Performance
 
-- **Inference Speed**: ~2-3 tokens/sec on GPU (RTX 3090)
-- **Memory Usage**: ~6GB VRAM (4-bit quantization)
-- **Response Time**: 2-5 seconds per query
+Benchmark results on RTX 4070 Ti SUPER with 4-bit quantization:
+
+### Response Times
+- **Simple Chat**: ~7-8 seconds
+- **Math Calculation**: ~8-11 seconds  
+- **Wikipedia Search**: ~30-35 seconds (includes API latency)
+
+### Resource Usage
+- **Memory Usage**: +8GB VRAM (4-bit quantization)
+
+### Breakdown by Agent Type
+| Agent Type | Average Time | Notes |
+|------------|-------------|-------|
+| Chat Agent | 7.8s | Direct LLM generation |
+| Math Agent | 9.7s | LLM-based calculation |
+| Wiki Agent | 32.5s | Includes Wikipedia API call (~15-20s) |
+
 
 - Turkish-Gemma model by YTU CE Cosmos Lab
 - LangGraph by LangChain
