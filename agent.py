@@ -398,7 +398,9 @@ class PlannerAgent:
             )
 
         user_prompt = f"Geçmiş (son turlar):\n{history_ctx}\n\nMevcut sorgu: {query}"
+        
         raw = self.llm.chat(Prompts.PLANNER, user_prompt, max_new_tokens=200)
+
         SystemLogger.log("planner", f"Ham plan çıktısı: {raw[:120]}…")
 
         plan = self._parse_plan(raw)
