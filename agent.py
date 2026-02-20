@@ -71,6 +71,11 @@ class AgentState(TypedDict):
     execution_trace: List[str]
     error_log: List[str]
 
+    # Zamanlama
+    timing: Dict[str, float]       # {ajan_adı: saniye}
+    query_start_time: float        # time.perf_counter() başlangıcı
+    total_elapsed: float           # toplam geçen süre (saniye)
+
 
 # ──────────────────────────────────────────────
 # Sistem Logger
@@ -650,18 +655,32 @@ class AgentOrchestrator:
 
         self.app = self._build_graph()
 
+    # ── Zamanlama Sarmalayıcı ─────────────────
+    @staticmethod
+    def _timed(name: str, fn):
+        """Bir düğüm fonksiyonunu çalıştırıp geçen süreyi state.timing'e kaydeder."""
+        def wrapper(state: AgentState) -> AgentState:
+            t0 = time.perf_counter()
+            result = fn(state)
+            elapsed = round(time.perf_counter() - t0, 3)
+            timing = dict(result.get("timing") or {})
+            timing[name] = timing.get(name, 0.0) + elapsed
+            SystemLogger.log("system", f"⏱  {name:12s} → {elapsed:.2f}s")
+            return {**result, "timing": timing}
+        return wrapper
+
     # ── Graf inşası ────────────────────────────
     def _build_graph(self) -> CompiledStateGraph:
         g = StateGraph(AgentState)
 
-        g.add_node("planner",     self.planner.run)
-        g.add_node("router",      self._router_node)
-        g.add_node("wiki",        self.searcher.run)
-        g.add_node("summarizer",  self._conditional_summarizer)
-        g.add_node("math",        self.math.run)
-        g.add_node("chat",        self._chat_node)
-        g.add_node("answer_gen",  self.answer.run)
-        g.add_node("qa_checker",  self.qa.run)
+        g.add_node("planner",    self._timed("planner",    self.planner.run))
+        g.add_node("router",     self._timed("router",     self._router_node))
+        g.add_node("wiki",       self._timed("wiki",       self.searcher.run))
+        g.add_node("summarizer", self._timed("summarizer", self._conditional_summarizer))
+        g.add_node("math",       self._timed("math",       self.math.run))
+        g.add_node("chat",       self._timed("chat",       self._chat_node))
+        g.add_node("answer_gen", self._timed("answer_gen", self.answer.run))
+        g.add_node("qa_checker", self._timed("qa_checker", self.qa.run))
 
         g.set_entry_point("planner")
         g.add_edge("planner", "router")
@@ -722,6 +741,8 @@ class AgentOrchestrator:
         SystemLogger.header(f"YENİ SORGU  [oturum: {session_id}]")
         SystemLogger.log("system", f"Sorgu: {query}")
 
+        t_start = time.perf_counter()
+
         initial: AgentState = {
             "session_id": session_id,
             "user_query": query,
@@ -736,9 +757,17 @@ class AgentOrchestrator:
             "retry_count": 0,
             "execution_trace": [],
             "error_log": [],
+            "timing": {},
+            "query_start_time": t_start,
+            "total_elapsed": 0.0,
         }
 
         result: AgentState = self.app.invoke(initial)
+
+        total = round(time.perf_counter() - t_start, 3)
+        result = {**result, "total_elapsed": total}
+
+        SystemLogger.log("system", f"⏱  TOPLAM SÜRE → {total:.2f}s")
 
         # Hafızayı güncelle
         self.memory.add("user", query)
@@ -786,6 +815,48 @@ def print_result(result: AgentState):
         SystemLogger.separator("HATALAR")
         for e in errors:
             print(f"  ⚠️  {e}")
+
+    # ── Zamanlama Tablosu ──────────────────────────────
+    timing: Dict[str, float] = result.get("timing") or {}
+    total: float = result.get("total_elapsed", 0.0)
+
+    if timing or total:
+        SystemLogger.separator("ZAMANLAMA")
+
+        ICONS = {
+            "planner":    "🗺️ ",
+            "router":     "🔀",
+            "wiki":       "📚",
+            "summarizer": "📝",
+            "math":       "🧮",
+            "chat":       "💬",
+            "answer_gen": "✍️ ",
+            "qa_checker": "🔍",
+        }
+        ORDER = ["planner", "router", "wiki", "summarizer", "math",
+                 "chat", "answer_gen", "qa_checker"]
+
+        bar_max = max(timing.values()) if timing else 1.0
+        BAR_WIDTH = 24
+
+        print()
+        for key in ORDER:
+            if key not in timing:
+                continue
+            secs = timing[key]
+            filled = int((secs / bar_max) * BAR_WIDTH)
+            bar = "█" * filled + "░" * (BAR_WIDTH - filled)
+            icon = ICONS.get(key, " ")
+            pct = (secs / total * 100) if total else 0
+            print(f"  {icon} {key:12s}  {bar}  {secs:6.2f}s  ({pct:4.1f}%)")
+
+        print()
+        retry = result.get("retry_count", 0)
+        retry_str = f"  🔄 Retry: {retry}x" if retry else ""
+        print(f"  {'─'*58}")
+        print(f"  ⏱  Toplam geçen süre : {total:.2f} saniye{retry_str}")
+        print(f"  ⏱  LLM dışı (I/O)   : {total - sum(timing.values()):.2f}s tahmini")
+        print()
 
     print("═" * 70 + "\n")
 
