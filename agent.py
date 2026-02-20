@@ -868,14 +868,44 @@ def print_result(result: AgentState):
 # ──────────────────────────────────────────────
 # Etkileşimli Çalışma Modu
 # ──────────────────────────────────────────────
+def _ask_quantization() -> bool:
+    """Başlangıçta kullanıcıya kuantizasyon tercihini sorar."""
+    print()
+    print("  ┌─────────────────────────────────────────────────┐")
+    print("  │           MODEL YÜKLEME MODU SEÇİMİ            │")
+    print("  ├─────────────────────────────────────────────────┤")
+    print("  │  [1]  4-bit Kuantizasyon  (az VRAM, ~8 GB)     │")
+    print("  │  [2]  float16 Normal      (fazla VRAM, ~18 GB) │")
+    print("  └─────────────────────────────────────────────────┘")
+    print()
+
+    while True:
+        try:
+            choice = input("  Seçiminiz [1/2]: ").strip()
+        except (KeyboardInterrupt, EOFError):
+            print()
+            choice = "1"
+
+        if choice == "1":
+            SystemLogger.log("system", "Mod: 4-bit NF4 Kuantizasyon seçildi")
+            return True
+        elif choice == "2":
+            SystemLogger.log("system", "Mod: float16 Normal seçildi")
+            return False
+        else:
+            print("  ⚠️  Lütfen sadece 1 veya 2 girin.")
+
+
 def run_interactive():
     SystemLogger.header("ENDÜSTRİYEL ÇOKLU-AJAN SİSTEMİ  v2.0")
     print("  Bileşenler: Planner · Wiki · Summarizer · Math · Chat · QA Checker")
     print("  Model     :", MODEL_ID)
+
+    use_4bit = _ask_quantization()
     print()
 
     SystemLogger.log("system", "Model yükleniyor…")
-    tokenizer, model = ModelLoader.load()
+    tokenizer, model = ModelLoader.load(use_4bit=use_4bit)
     llm_engine   = LLMEngine(tokenizer, model)
     wiki_searcher = WikipediaSearcher()
     memory       = ConversationMemory(window=MEMORY_WINDOW)
