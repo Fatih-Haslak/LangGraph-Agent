@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Industrial Multi-Agent System — Mimari Dokümantasyon</title>
+<style>
+  :root{
+    --bg:#0d1117;--surface:#161b22;--surface2:#21262d;--surface3:#30363d;
+    --border:#30363d;--border2:#484f58;
+    --text:#e6edf3;--muted:#8b949e;--dim:#6e7681;
+    --blue:#58a6ff;--green:#3fb950;--yellow:#d29922;--orange:#f0883e;
+    --purple:#bc8cff;--pink:#f778ba;--red:#f85149;--cyan:#39d353;
+    --planner:#bc8cff;--router:#58a6ff;--wiki:#f0883e;--summarizer:#39d353;
+    --math:#f778ba;--chat:#ffa657;--answer:#58a6ff;--qa:#f85149;
+    --memory:#3fb950;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Segoe UI',system-ui,sans-serif;font-size:14px;line-height:1.6}
+  a{color:var(--blue);text-decoration:none}
+
+  /* ─── Layout ─────────────────────── */
+  .page{max-width:1280px;margin:0 auto;padding:32px 24px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+  .grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+
+  /* ─── Hero ────────────────────────── */
+  .hero{background:linear-gradient(135deg,#1a1f2e 0%,#161b22 60%,#0d1117 100%);
+        border:1px solid var(--border);border-radius:16px;padding:48px 40px;
+        margin-bottom:32px;position:relative;overflow:hidden}
+  .hero::before{content:'';position:absolute;top:-60px;right:-60px;
+        width:300px;height:300px;border-radius:50%;
+        background:radial-gradient(circle,rgba(88,166,255,.12) 0%,transparent 70%)}
+  .hero-badge{display:inline-flex;align-items:center;gap:8px;
+        background:rgba(88,166,255,.15);border:1px solid rgba(88,166,255,.3);
+        border-radius:20px;padding:4px 14px;font-size:12px;color:var(--blue);
+        margin-bottom:16px;letter-spacing:.5px}
+  .hero h1{font-size:2.2rem;font-weight:700;letter-spacing:-0.5px;margin-bottom:8px;
+        background:linear-gradient(90deg,#e6edf3 0%,#58a6ff 100%);
+        -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+  .hero p{color:var(--muted);font-size:1rem;max-width:680px;line-height:1.7}
+  .hero-meta{display:flex;gap:24px;margin-top:24px;flex-wrap:wrap}
+  .hero-meta span{color:var(--muted);font-size:13px}
+  .hero-meta strong{color:var(--text)}
+
+  /* ─── Sections ───────────────────── */
+  .section{margin-bottom:40px}
+  .section-title{font-size:1.1rem;font-weight:600;color:var(--text);
+        margin-bottom:16px;display:flex;align-items:center;gap:10px;
+        padding-bottom:10px;border-bottom:1px solid var(--border)}
+  .section-title .icon{width:28px;height:28px;border-radius:8px;
+        display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+
+  /* ─── Cards ──────────────────────── */
+  .card{background:var(--surface);border:1px solid var(--border);
+        border-radius:12px;padding:20px;transition:border-color .2s}
+  .card:hover{border-color:var(--border2)}
+  .card-title{font-size:.85rem;font-weight:600;text-transform:uppercase;
+        letter-spacing:.8px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+  .card-body{color:var(--muted);font-size:13px;line-height:1.7}
+
+  /* ─── Agent Cards ────────────────── */
+  .agent-card{background:var(--surface);border:1px solid var(--border);
+        border-radius:12px;padding:20px;position:relative;overflow:hidden;
+        transition:transform .2s,box-shadow .2s}
+  .agent-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,.4)}
+  .agent-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:12px 12px 0 0}
+  .agent-card.planner::before{background:var(--planner)}
+  .agent-card.router::before{background:var(--router)}
+  .agent-card.wiki::before{background:var(--wiki)}
+  .agent-card.summarizer::before{background:var(--summarizer)}
+  .agent-card.math::before{background:var(--math)}
+  .agent-card.chat::before{background:var(--chat)}
+  .agent-card.answer::before{background:var(--answer)}
+  .agent-card.qa::before{background:var(--qa)}
+  .agent-card.memory::before{background:var(--memory)}
+
+  .agent-icon{width:40px;height:40px;border-radius:10px;display:flex;
+        align-items:center;justify-content:center;font-size:20px;margin-bottom:12px}
+  .agent-card.planner .agent-icon{background:rgba(188,140,255,.15)}
+  .agent-card.router  .agent-icon{background:rgba(88,166,255,.15)}
+  .agent-card.wiki    .agent-icon{background:rgba(240,136,62,.15)}
+  .agent-card.summarizer .agent-icon{background:rgba(57,211,83,.15)}
+  .agent-card.math    .agent-icon{background:rgba(247,120,186,.15)}
+  .agent-card.chat    .agent-icon{background:rgba(255,166,87,.15)}
+  .agent-card.answer  .agent-icon{background:rgba(88,166,255,.15)}
+  .agent-card.qa      .agent-icon{background:rgba(248,81,73,.15)}
+  .agent-card.memory  .agent-icon{background:rgba(63,185,80,.15)}
+
+  .agent-name{font-size:.95rem;font-weight:600;margin-bottom:4px}
+  .agent-role{font-size:.75rem;color:var(--muted);margin-bottom:10px}
+  .agent-desc{font-size:.8rem;color:var(--muted);line-height:1.6;margin-bottom:12px}
+
+  /* ─── Tags ───────────────────────── */
+  .tag{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;
+        border-radius:12px;font-size:.7rem;font-weight:500;margin:2px}
+  .tag-in {background:rgba(57,211,83,.15);color:#39d353;border:1px solid rgba(57,211,83,.25)}
+  .tag-out{background:rgba(88,166,255,.15);color:#58a6ff;border:1px solid rgba(88,166,255,.25)}
+  .tag-cfg{background:rgba(210,153,34,.15);color:#d29922;border:1px solid rgba(210,153,34,.25)}
+  .tag-cls{background:rgba(188,140,255,.15);color:#bc8cff;border:1px solid rgba(188,140,255,.25)}
+  .tag-err{background:rgba(248,81,73,.15);color:#f85149;border:1px solid rgba(248,81,73,.25)}
+  .tag-warn{background:rgba(210,153,34,.15);color:#d29922;border:1px solid rgba(210,153,34,.25)}
+  .tag-ok{background:rgba(63,185,80,.15);color:#3fb950;border:1px solid rgba(63,185,80,.25)}
+
+  /* ─── Flow Diagram ───────────────── */
+  .flow-wrap{background:var(--surface);border:1px solid var(--border);
+        border-radius:12px;padding:32px;overflow-x:auto}
+  .flow{display:flex;align-items:flex-start;gap:0;min-width:900px}
+  .flow-node{display:flex;flex-direction:column;align-items:center;position:relative}
+  .flow-box{padding:10px 16px;border-radius:10px;font-size:.78rem;font-weight:600;
+        text-align:center;min-width:90px;border:2px solid transparent;cursor:default;
+        transition:transform .2s}
+  .flow-box:hover{transform:scale(1.05)}
+  .flow-arrow{display:flex;align-items:center;padding:0 4px;color:var(--dim);font-size:18px;
+        margin-top:18px}
+  .flow-branch{display:flex;flex-direction:column;gap:8px;padding:0 8px}
+  .flow-branch-item{display:flex;align-items:center;gap:4px}
+  .flow-label{font-size:.65rem;color:var(--muted);text-align:center;
+        margin-top:6px;max-width:90px}
+  .flow-cond{background:rgba(88,166,255,.1);border:1px dashed rgba(88,166,255,.4);
+        border-radius:8px;padding:4px 10px;font-size:.68rem;color:var(--blue);
+        text-align:center;margin-top:6px}
+
+  /* ─── State Table ────────────────── */
+  table{width:100%;border-collapse:collapse;font-size:.82rem}
+  th{background:var(--surface2);color:var(--muted);text-align:left;
+        padding:8px 12px;font-weight:500;font-size:.72rem;text-transform:uppercase;
+        letter-spacing:.6px;border-bottom:1px solid var(--border)}
+  td{padding:9px 12px;border-bottom:1px solid rgba(48,54,61,.6);vertical-align:top}
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:rgba(48,54,61,.3)}
+  .field-name{font-family:'Cascadia Code','Fira Code',monospace;color:#79c0ff;font-size:.8rem}
+  .field-type{font-family:'Cascadia Code','Fira Code',monospace;color:#ff7b72;font-size:.75rem}
+  .field-group{background:var(--surface2);padding:4px 8px;border-radius:4px;
+        font-size:.65rem;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+
+  /* ─── Config Table ───────────────── */
+  .cfg-val{font-family:'Cascadia Code','Fira Code',monospace;color:#f0883e;font-size:.82rem}
+
+  /* ─── Prompt Cards ───────────────── */
+  .prompt-card{background:var(--surface);border:1px solid var(--border);
+        border-radius:10px;overflow:hidden;margin-bottom:12px}
+  .prompt-header{background:var(--surface2);padding:10px 16px;display:flex;
+        align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+  .prompt-name{font-weight:600;font-size:.85rem;display:flex;align-items:center;gap:8px}
+  .prompt-tokens{font-size:.72rem;color:var(--muted)}
+  .prompt-body{padding:14px 16px}
+  pre{font-family:'Cascadia Code','Fira Code',monospace;font-size:.75rem;
+        color:#c9d1d9;white-space:pre-wrap;word-break:break-word;line-height:1.6}
+  .keyword{color:#ff7b72}
+  .string-val{color:#a5d6ff}
+  .comment{color:#6e7681;font-style:italic}
+
+  /* ─── QA Scoring ─────────────────── */
+  .score-row{display:flex;align-items:center;gap:12px;padding:10px 0;
+        border-bottom:1px solid var(--border)}
+  .score-row:last-child{border-bottom:none}
+  .score-label{flex:1;font-size:.82rem;color:var(--text)}
+  .score-bar-wrap{flex:2;background:var(--surface2);border-radius:4px;height:6px;overflow:hidden}
+  .score-bar{height:100%;border-radius:4px}
+  .score-pts{font-size:.78rem;color:var(--muted);min-width:50px;text-align:right}
+
+  /* ─── Memory ─────────────────────── */
+  .memory-vis{display:flex;gap:8px;align-items:flex-end;padding:16px 0}
+  .mem-slot{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .mem-block{width:48px;border-radius:6px;display:flex;align-items:center;
+        justify-content:center;font-size:.65rem;font-weight:600}
+  .mem-label{font-size:.65rem;color:var(--muted)}
+  .mem-arrow{color:var(--dim);font-size:20px;margin-bottom:16px}
+
+  /* ─── Retry Loop ─────────────────── */
+  .retry-flow{display:flex;align-items:center;justify-content:center;
+        gap:0;flex-wrap:wrap;padding:24px}
+  .retry-node{padding:8px 16px;border-radius:8px;font-size:.78rem;
+        font-weight:600;text-align:center;min-width:100px}
+  .retry-arrow{color:var(--dim);font-size:16px;padding:0 6px}
+  .retry-curved{display:flex;flex-direction:column;align-items:center;gap:4px}
+  .retry-line{font-size:.68rem;color:var(--red);
+        background:rgba(248,81,73,.1);border:1px dashed rgba(248,81,73,.3);
+        border-radius:6px;padding:3px 10px}
+
+  /* ─── Stats ──────────────────────── */
+  .stat-card{background:var(--surface);border:1px solid var(--border);
+        border-radius:12px;padding:20px;text-align:center}
+  .stat-val{font-size:2rem;font-weight:700;line-height:1}
+  .stat-lbl{font-size:.75rem;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.5px}
+
+  /* ─── Badges ─────────────────────── */
+  .badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:.72rem;font-weight:600}
+  .badge-blue{background:rgba(88,166,255,.2);color:#58a6ff}
+  .badge-green{background:rgba(63,185,80,.2);color:#3fb950}
+  .badge-red{background:rgba(248,81,73,.2);color:#f85149}
+  .badge-yellow{background:rgba(210,153,34,.2);color:#d29922}
+  .badge-purple{background:rgba(188,140,255,.2);color:#bc8cff}
+
+  /* ─── Graph SVG ──────────────────── */
+  .graph-container{background:var(--surface);border:1px solid var(--border);
+        border-radius:12px;padding:24px;text-align:center;overflow-x:auto}
+
+  /* ─── TOC ────────────────────────── */
+  .toc{background:var(--surface);border:1px solid var(--border);border-radius:12px;
+        padding:20px;margin-bottom:32px}
+  .toc-title{font-size:.85rem;font-weight:600;color:var(--muted);text-transform:uppercase;
+        letter-spacing:.6px;margin-bottom:12px}
+  .toc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px}
+  .toc-item{display:flex;align-items:center;gap:8px;padding:6px 10px;
+        border-radius:6px;color:var(--muted);font-size:.82rem;
+        transition:background .15s,color .15s;cursor:pointer}
+  .toc-item:hover{background:var(--surface2);color:var(--text)}
+  .toc-num{font-size:.68rem;color:var(--dim);min-width:18px}
+
+  /* ─── Footer ─────────────────────── */
+  .footer{text-align:center;padding:32px 0;color:var(--dim);font-size:.78rem;
+        border-top:1px solid var(--border);margin-top:48px}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- ═══════════════════ HERO ═══════════════════ -->
+<div class="hero">
+  <div class="hero-badge">⚙️ &nbsp;ENDÜSTRİYEL SİSTEM</div>
+  <h1>Industrial Multi-Agent System</h1>
+  <p>LangGraph tabanlı çok-ajanlı Türkçe yapay zeka sistemi — Planner, Summarizer, QA Checker, Conversation Memory ve tam yürütme izi ile donatılmış mimari dokümantasyonu.</p>
+  <div class="hero-meta">
+    <span>Model: <strong>ytu-ce-cosmos/Turkish-Gemma-9b-v0.1</strong></span>
+    <span>Versiyon: <strong>v2.0</strong></span>
+    <span>Ajan sayısı: <strong>8 aktif ajan</strong></span>
+    <span>Framework: <strong>LangGraph + HuggingFace</strong></span>
+    <span>Dil: <strong>Python 3.10+</strong></span>
+  </div>
+</div>
+
+<!-- ═══════════════════ TOC ═══════════════════ -->
+<div class="toc">
+  <div class="toc-title">İçindekiler</div>
+  <div class="toc-grid">
+    <a class="toc-item" href="#sec-stats"><span class="toc-num">01</span>Sistem Metrikleri</a>
+    <a class="toc-item" href="#sec-flow"><span class="toc-num">02</span>Graf Akış Diyagramı</a>
+    <a class="toc-item" href="#sec-agents"><span class="toc-num">03</span>Ajan Kartları</a>
+    <a class="toc-item" href="#sec-state"><span class="toc-num">04</span>AgentState Alanları</a>
+    <a class="toc-item" href="#sec-config"><span class="toc-num">05</span>Konfigürasyon Parametreleri</a>
+    <a class="toc-item" href="#sec-prompts"><span class="toc-num">06</span>Sistem Prompt Kitaplığı</a>
+    <a class="toc-item" href="#sec-qa"><span class="toc-num">07</span>QA Kalite Değerlendirme</a>
+    <a class="toc-item" href="#sec-retry"><span class="toc-num">08</span>Retry Mekanizması</a>
+    <a class="toc-item" href="#sec-memory"><span class="toc-num">09</span>Konuşma Hafızası</a>
+    <a class="toc-item" href="#sec-data"><span class="toc-num">10</span>Veri Akışı Detayı</a>
+    <a class="toc-item" href="#sec-classes"><span class="toc-num">11</span>Sınıf Hiyerarşisi</a>
+    <a class="toc-item" href="#sec-wiki"><span class="toc-num">12</span>Wikipedia Entegrasyonu</a>
+  </div>
+</div>
+
+<!-- ═══════════════════ 01 STATS ═══════════════════ -->
+<div class="section" id="sec-stats">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(88,166,255,.15);color:#58a6ff">📊</div>
+    01 — Sistem Metrikleri
+  </div>
+  <div class="grid4">
+    <div class="stat-card">
+      <div class="stat-val" style="color:#bc8cff">8</div>
+      <div class="stat-lbl">Aktif Ajan</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:#58a6ff">14</div>
+      <div class="stat-lbl">AgentState Alanı</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:#f0883e">7</div>
+      <div class="stat-lbl">Sistem Promptu</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:#3fb950">2</div>
+      <div class="stat-lbl">Max Retry</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:#f85149">6</div>
+      <div class="stat-lbl">Kalite Eşiği / 10</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:#39d353">6</div>
+      <div class="stat-lbl">Hafıza Penceresi (tur)</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:#ffa657">1200</div>
+      <div class="stat-lbl">Wiki Maks. Karakter</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-val" style="color:#f778ba">500</div>
+      <div class="stat-lbl">Özet Maks. Karakter</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 02 FLOW ═══════════════════ -->
+<div class="section" id="sec-flow">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(88,166,255,.15);color:#58a6ff">🗺️</div>
+    02 — LangGraph Graf Akış Diyagramı
+  </div>
+  <div class="graph-container">
+    <svg viewBox="0 0 1060 420" xmlns="http://www.w3.org/2000/svg" style="max-width:100%;height:auto;font-family:'Segoe UI',sans-serif">
+      <defs>
+        <marker id="arr" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#484f58"/>
+        </marker>
+        <marker id="arr-r" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#f85149"/>
+        </marker>
+        <marker id="arr-g" markerWidth="8" markerHeight="6" refX="8" refY="3" orient="auto">
+          <polygon points="0 0, 8 3, 0 6" fill="#3fb950"/>
+        </marker>
+        <!-- glow filters -->
+        <filter id="glow-p"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      </defs>
+
+      <!-- ── Backgrounds ── -->
+      <rect x="0" y="0" width="1060" height="420" rx="12" fill="#161b22"/>
+
+      <!-- INPUT -->
+      <rect x="30" y="185" width="80" height="40" rx="8" fill="#21262d" stroke="#484f58" stroke-width="1.5"/>
+      <text x="70" y="208" text-anchor="middle" fill="#8b949e" font-size="11" font-weight="600">INPUT</text>
+      <text x="70" y="222" text-anchor="middle" fill="#6e7681" font-size="9">user_query</text>
+
+      <!-- Arrow: INPUT → PLANNER -->
+      <line x1="110" y1="205" x2="145" y2="205" stroke="#484f58" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- PLANNER -->
+      <rect x="148" y="175" width="90" height="58" rx="10" fill="#1a1228" stroke="#bc8cff" stroke-width="2"/>
+      <text x="193" y="196" text-anchor="middle" fill="#bc8cff" font-size="10">🗺️</text>
+      <text x="193" y="210" text-anchor="middle" fill="#bc8cff" font-size="11" font-weight="600">PLANNER</text>
+      <text x="193" y="224" text-anchor="middle" fill="#9580c8" font-size="9">PlannerAgent</text>
+
+      <!-- Arrow: PLANNER → ROUTER -->
+      <line x1="238" y1="204" x2="273" y2="204" stroke="#484f58" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- ROUTER -->
+      <rect x="276" y="175" width="90" height="58" rx="10" fill="#111d2e" stroke="#58a6ff" stroke-width="2"/>
+      <text x="321" y="196" text-anchor="middle" fill="#58a6ff" font-size="10">🔀</text>
+      <text x="321" y="210" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="600">ROUTER</text>
+      <text x="321" y="224" text-anchor="middle" fill="#4080b8" font-size="9">RouterAgent</text>
+
+      <!-- Branch lines from ROUTER -->
+      <!-- to WIKI (top) -->
+      <line x1="366" y1="195" x2="400" y2="100" stroke="#484f58" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+      <text x="383" y="148" fill="#6e7681" font-size="9" transform="rotate(-35,383,148)">research</text>
+
+      <!-- to MATH (middle) -->
+      <line x1="366" y1="204" x2="400" y2="204" stroke="#484f58" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+      <text x="376" y="198" fill="#6e7681" font-size="9">math</text>
+
+      <!-- to CHAT (bottom) -->
+      <line x1="366" y1="215" x2="400" y2="320" stroke="#484f58" stroke-width="1.5" stroke-dasharray="4,3" marker-end="url(#arr)"/>
+      <text x="380" y="275" fill="#6e7681" font-size="9" transform="rotate(35,380,275)">chat</text>
+
+      <!-- WIKI -->
+      <rect x="403" y="70" width="88" height="52" rx="10" fill="#1e1505" stroke="#f0883e" stroke-width="2"/>
+      <text x="447" y="90" text-anchor="middle" fill="#f0883e" font-size="10">📚</text>
+      <text x="447" y="104" text-anchor="middle" fill="#f0883e" font-size="11" font-weight="600">WIKI</text>
+      <text x="447" y="116" text-anchor="middle" fill="#b86030" font-size="9">WikiSearchAgent</text>
+
+      <!-- WIKI → SUMMARIZER -->
+      <line x1="491" y1="96" x2="525" y2="96" stroke="#484f58" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- SUMMARIZER -->
+      <rect x="528" y="70" width="100" height="52" rx="10" fill="#0d1e10" stroke="#39d353" stroke-width="2"/>
+      <text x="578" y="90" text-anchor="middle" fill="#39d353" font-size="10">📝</text>
+      <text x="578" y="104" text-anchor="middle" fill="#39d353" font-size="11" font-weight="600">SUMMARIZER</text>
+      <text x="578" y="116" text-anchor="middle" fill="#2a8040" font-size="9">SummarizerAgent</text>
+      <!-- conditional badge -->
+      <rect x="536" y="128" width="84" height="16" rx="4" fill="rgba(57,211,83,.1)" stroke="rgba(57,211,83,.3)" stroke-width="1"/>
+      <text x="578" y="139" text-anchor="middle" fill="#39d353" font-size="8">koşullu (requires_summary)</text>
+
+      <!-- SUMMARIZER → ANSWER_GEN (merge) -->
+      <line x1="628" y1="96" x2="668" y2="175" stroke="#484f58" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- MATH -->
+      <rect x="403" y="178" width="88" height="52" rx="10" fill="#1e0d1a" stroke="#f778ba" stroke-width="2"/>
+      <text x="447" y="198" text-anchor="middle" fill="#f778ba" font-size="10">🧮</text>
+      <text x="447" y="212" text-anchor="middle" fill="#f778ba" font-size="11" font-weight="600">MATH</text>
+      <text x="447" y="226" text-anchor="middle" fill="#b05090" font-size="9">MathAgent</text>
+
+      <!-- MATH → ANSWER_GEN -->
+      <line x1="491" y1="204" x2="668" y2="204" stroke="#484f58" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- CHAT -->
+      <rect x="403" y="294" width="88" height="52" rx="10" fill="#1e1505" stroke="#ffa657" stroke-width="2"/>
+      <text x="447" y="314" text-anchor="middle" fill="#ffa657" font-size="10">💬</text>
+      <text x="447" y="328" text-anchor="middle" fill="#ffa657" font-size="11" font-weight="600">CHAT</text>
+      <text x="447" y="342" text-anchor="middle" fill="#b07030" font-size="9">ChatAgent</text>
+
+      <!-- CHAT → ANSWER_GEN -->
+      <line x1="491" y1="320" x2="668" y2="230" stroke="#484f58" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- ANSWER_GEN -->
+      <rect x="671" y="175" width="100" height="58" rx="10" fill="#101828" stroke="#58a6ff" stroke-width="2"/>
+      <text x="721" y="196" text-anchor="middle" fill="#58a6ff" font-size="10">✍️</text>
+      <text x="721" y="210" text-anchor="middle" fill="#58a6ff" font-size="11" font-weight="600">ANSWER GEN</text>
+      <text x="721" y="224" text-anchor="middle" fill="#4080b8" font-size="9">AnswerGenerator</text>
+
+      <!-- ANSWER_GEN → QA_CHECKER -->
+      <line x1="771" y1="204" x2="806" y2="204" stroke="#484f58" stroke-width="1.5" marker-end="url(#arr)"/>
+
+      <!-- QA_CHECKER -->
+      <rect x="809" y="175" width="100" height="58" rx="10" fill="#1e0808" stroke="#f85149" stroke-width="2"/>
+      <text x="859" y="196" text-anchor="middle" fill="#f85149" font-size="10">🔍</text>
+      <text x="859" y="210" text-anchor="middle" fill="#f85149" font-size="11" font-weight="600">QA CHECKER</text>
+      <text x="859" y="224" text-anchor="middle" fill="#a03030" font-size="9">QualityChecker</text>
+
+      <!-- QA → END (approved) -->
+      <line x1="909" y1="204" x2="950" y2="204" stroke="#3fb950" stroke-width="2" marker-end="url(#arr-g)"/>
+      <text x="928" y="198" text-anchor="middle" fill="#3fb950" font-size="9">✅ approved</text>
+
+      <!-- END -->
+      <rect x="953" y="185" width="70" height="40" rx="8" fill="#0d1e10" stroke="#3fb950" stroke-width="2"/>
+      <text x="988" y="208" text-anchor="middle" fill="#3fb950" font-size="11" font-weight="600">END</text>
+
+      <!-- QA RETRY LOOP -->
+      <path d="M 859 233 L 859 370 L 721 370 L 721 233" stroke="#f85149" stroke-width="1.5" stroke-dasharray="5,4" fill="none" marker-end="url(#arr-r)"/>
+      <text x="790" y="385" text-anchor="middle" fill="#f85149" font-size="9">🔄 retry (score &lt; 6, max 2x)</text>
+
+      <!-- MEMORY (side note) -->
+      <rect x="30" y="310" width="260" height="60" rx="8" fill="#0d1e10" stroke="#3fb950" stroke-width="1" stroke-dasharray="4,3"/>
+      <text x="45" y="332" fill="#3fb950" font-size="10" font-weight="600">🧠 ConversationMemory</text>
+      <text x="45" y="346" fill="#6e7681" font-size="9">→ Hafıza güncellenir (user + assistant)</text>
+      <text x="45" y="358" fill="#6e7681" font-size="9">→ Kayan pencere: 6 tur (12 mesaj max)</text>
+
+      <!-- Arrow from orchestrator to memory -->
+      <line x1="160" y1="310" x2="160" y2="265" stroke="#3fb950" stroke-width="1" stroke-dasharray="3,3" marker-end="url(#arr-g)"/>
+    </svg>
+  </div>
+</div>
+
+<!-- ═══════════════════ 03 AGENTS ═══════════════════ -->
+<div class="section" id="sec-agents">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(188,140,255,.15);color:#bc8cff">🤖</div>
+    03 — Ajan Kartları
+  </div>
+  <div class="grid3">
+
+    <!-- Planner -->
+    <div class="agent-card planner">
+      <div class="agent-icon">🗺️</div>
+      <div class="agent-name">PlannerAgent</div>
+      <div class="agent-role">Görev Analisti & Plan Üreticisi</div>
+      <div class="agent-desc">Kullanıcının sorgusunu ve konuşma geçmişini analiz ederek JSON formatında çok adımlı yürütme planı üretir. task_type, steps, search_query, complexity ve intent alanlarını belirler.</div>
+      <div>
+        <span class="tag tag-in">↓ user_query</span>
+        <span class="tag tag-in">↓ conversation_history</span>
+        <span class="tag tag-out">↑ plan{}</span>
+        <span class="tag tag-cfg">max_tokens: 200</span>
+      </div>
+    </div>
+
+    <!-- Router -->
+    <div class="agent-card router">
+      <div class="agent-icon">🔀</div>
+      <div class="agent-name">RouterAgent</div>
+      <div class="agent-role">İş Akışı Yönlendirici</div>
+      <div class="agent-desc">Plan'daki task_type değerine göre wiki / math / chat dallarından birine koşullu kenar ile yönlendirir. LangGraph'ın add_conditional_edges API'sini kullanır.</div>
+      <div>
+        <span class="tag tag-in">↓ plan.task_type</span>
+        <span class="tag tag-out">↑ route: wiki|math|chat</span>
+        <span class="tag tag-cfg">Koşullu kenar</span>
+      </div>
+    </div>
+
+    <!-- Wiki -->
+    <div class="agent-card wiki">
+      <div class="agent-icon">📚</div>
+      <div class="agent-name">WikiSearchAgent</div>
+      <div class="agent-role">Türkçe Wikipedia Araştırmacısı</div>
+      <div class="agent-desc">Türkçe Wikipedia API'sine iki aşamalı istek atar: önce başlık arar, sonra makale özetini çeker. Türkçe soru eklerini (kimdir, nedir…) otomatik temizler.</div>
+      <div>
+        <span class="tag tag-in">↓ plan.search_query</span>
+        <span class="tag tag-out">↑ wiki_raw{title,summary,url,char_count}</span>
+        <span class="tag tag-cfg">timeout: 15s</span>
+        <span class="tag tag-cfg">max: 1200 char</span>
+      </div>
+    </div>
+
+    <!-- Summarizer -->
+    <div class="agent-card summarizer">
+      <div class="agent-icon">📝</div>
+      <div class="agent-name">SummarizerAgent</div>
+      <div class="agent-role">İçerik Yoğunlaştırıcı</div>
+      <div class="agent-desc">Uzun Wikipedia içeriğini kullanıcı sorusuna odaklı 4-6 maddelik özete sıkıştırır. Yalnızca plan.requires_summary = true olduğunda ve wiki_raw mevcut olduğunda aktive edilir.</div>
+      <div>
+        <span class="tag tag-in">↓ wiki_raw</span>
+        <span class="tag tag-in">↓ plan.requires_summary</span>
+        <span class="tag tag-out">↑ wiki_summary</span>
+        <span class="tag tag-cfg">max: 500 char</span>
+        <span class="tag tag-cfg">max_tokens: 300</span>
+      </div>
+    </div>
+
+    <!-- Math -->
+    <div class="agent-card math">
+      <div class="agent-icon">🧮</div>
+      <div class="agent-name">MathAgent</div>
+      <div class="agent-role">Matematiksel Hesap Uzmanı</div>
+      <div class="agent-desc">Matematiksel ifadeleri adım adım çözer. plan.search_query'den veya doğrudan user_query'den ifadeyi alır. Sonucu "Sonuç: &lt;değer&gt;" formatında sunar.</div>
+      <div>
+        <span class="tag tag-in">↓ plan.search_query</span>
+        <span class="tag tag-out">↑ math_result</span>
+        <span class="tag tag-cfg">max_tokens: 200</span>
+      </div>
+    </div>
+
+    <!-- Chat -->
+    <div class="agent-card chat">
+      <div class="agent-icon">💬</div>
+      <div class="agent-name">ChatAgent</div>
+      <div class="agent-role">Sohbet Koordinatörü</div>
+      <div class="agent-desc">Selamlama, teşekkür ve genel konuşma isteklerini doğrudan AnswerGeneratorAgent'a yönlendiren geçiş düğümüdür. Konuşma geçmişini AnswerGenerator'a aktarır.</div>
+      <div>
+        <span class="tag tag-in">↓ user_query</span>
+        <span class="tag tag-out">↑ state (pass-through)</span>
+        <span class="tag tag-cfg">Geçiş düğümü</span>
+      </div>
+    </div>
+
+    <!-- Answer Generator -->
+    <div class="agent-card answer">
+      <div class="agent-icon">✍️</div>
+      <div class="agent-name">AnswerGeneratorAgent</div>
+      <div class="agent-role">Nihai Cevap Üreticisi</div>
+      <div class="agent-desc">Toplanan tüm verilerden (wiki_summary, wiki_raw, math_result) task_type'a göre akıcı Türkçe taslak cevap üretir. Wikisource URL'sini de yanıta ekler.</div>
+      <div>
+        <span class="tag tag-in">↓ wiki_summary / math_result</span>
+        <span class="tag tag-in">↓ plan.intent</span>
+        <span class="tag tag-out">↑ draft_answer</span>
+        <span class="tag tag-cfg">max_tokens: 380</span>
+      </div>
+    </div>
+
+    <!-- QA Checker -->
+    <div class="agent-card qa">
+      <div class="agent-icon">🔍</div>
+      <div class="agent-name">QualityCheckerAgent</div>
+      <div class="agent-role">Kalite Kontrol & Retry Yöneticisi</div>
+      <div class="agent-desc">Taslak cevabı 0-10 skalasında değerlendirir. Skor &lt; 6 ise retry_count ≤ 2 kontrolüyle AnswerGeneratorAgent'a geri döner. Onaylananlar final_answer olarak yayımlanır.</div>
+      <div>
+        <span class="tag tag-in">↓ draft_answer</span>
+        <span class="tag tag-in">↓ retry_count</span>
+        <span class="tag tag-out">↑ qa_report{}</span>
+        <span class="tag tag-out">↑ final_answer</span>
+        <span class="tag tag-err">retry ≤ 2</span>
+        <span class="tag tag-cfg">eşik: 6/10</span>
+      </div>
+    </div>
+
+    <!-- Memory -->
+    <div class="agent-card memory">
+      <div class="agent-icon">🧠</div>
+      <div class="agent-name">ConversationMemory</div>
+      <div class="agent-role">Kayan Pencereli Hafıza Yöneticisi</div>
+      <div class="agent-desc">Her sorgu sonrası user + assistant mesajlarını biriktirir. Pencere (window=6) aşılınca en eski turlar silinir. as_list() ile LLM'e geçmiş bağlamı sağlar.</div>
+      <div>
+        <span class="tag tag-in">add(role, content)</span>
+        <span class="tag tag-out">as_list() → history</span>
+        <span class="tag tag-cfg">window: 6 tur</span>
+        <span class="tag tag-cfg">max: 12 mesaj</span>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════ 04 STATE ═══════════════════ -->
+<div class="section" id="sec-state">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(57,211,83,.15);color:#39d353">📦</div>
+    04 — AgentState Alanları (TypedDict)
+  </div>
+  <div class="card">
+    <table>
+      <thead>
+        <tr>
+          <th>Alan Adı</th><th>Tip</th><th>Grup</th><th>Açıklama</th><th>Başlangıç</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td class="field-name">session_id</td><td class="field-type">str</td><td><span class="field-group">META</span></td><td style="color:var(--muted)">UUID v4'ten üretilen 8 karakter oturum kimliği</td><td><code style="color:#a5d6ff;font-size:.75rem">uuid4()[:8]</code></td></tr>
+        <tr><td class="field-name">user_query</td><td class="field-type">str</td><td><span class="field-group">GİRİŞ</span></td><td style="color:var(--muted)">Ham kullanıcı sorgu metni</td><td><code style="color:#a5d6ff;font-size:.75rem">""</code></td></tr>
+        <tr><td class="field-name">conversation_history</td><td class="field-type">List[Dict]</td><td><span class="field-group">GİRİŞ</span></td><td style="color:var(--muted)">ConversationMemory'den gelen geçmiş mesajlar [{role, content}]</td><td><code style="color:#a5d6ff;font-size:.75rem">[]</code></td></tr>
+        <tr style="background:rgba(188,140,255,.04)"><td class="field-name">plan</td><td class="field-type">Optional[Dict]</td><td><span class="field-group" style="background:rgba(188,140,255,.2);color:#bc8cff">PLANNER</span></td><td style="color:var(--muted)">PlannerAgent çıktısı — task_type, steps, search_query, requires_summary, complexity, intent</td><td><code style="color:#ff7b72;font-size:.75rem">None</code></td></tr>
+        <tr style="background:rgba(240,136,62,.04)"><td class="field-name">wiki_raw</td><td class="field-type">Optional[Dict]</td><td><span class="field-group" style="background:rgba(240,136,62,.2);color:#f0883e">WIKI</span></td><td style="color:var(--muted)">Ham Wikipedia verisi: {title, summary, url, char_count}</td><td><code style="color:#ff7b72;font-size:.75rem">None</code></td></tr>
+        <tr style="background:rgba(57,211,83,.04)"><td class="field-name">wiki_summary</td><td class="field-type">Optional[str]</td><td><span class="field-group" style="background:rgba(57,211,83,.2);color:#39d353">SUM</span></td><td style="color:var(--muted)">SummarizerAgent tarafından üretilen yoğunlaştırılmış özet</td><td><code style="color:#ff7b72;font-size:.75rem">None</code></td></tr>
+        <tr style="background:rgba(247,120,186,.04)"><td class="field-name">math_result</td><td class="field-type">Optional[str]</td><td><span class="field-group" style="background:rgba(247,120,186,.2);color:#f778ba">MATH</span></td><td style="color:var(--muted)">MathAgent'ın adım adım çözüm + "Sonuç:" çıktısı</td><td><code style="color:#ff7b72;font-size:.75rem">None</code></td></tr>
+        <tr style="background:rgba(88,166,255,.04)"><td class="field-name">draft_answer</td><td class="field-type">Optional[str]</td><td><span class="field-group" style="background:rgba(88,166,255,.2);color:#58a6ff">ANSWER</span></td><td style="color:var(--muted)">AnswerGeneratorAgent'ın QA'ya göndermeden önceki taslak cevabı</td><td><code style="color:#ff7b72;font-size:.75rem">None</code></td></tr>
+        <tr style="background:rgba(88,166,255,.04)"><td class="field-name">final_answer</td><td class="field-type">Optional[str]</td><td><span class="field-group" style="background:rgba(88,166,255,.2);color:#58a6ff">ANSWER</span></td><td style="color:var(--muted)">QA onayından geçen nihai kullanıcıya sunulan cevap (düşük skor uyarısıyla birlikte olabilir)</td><td><code style="color:#ff7b72;font-size:.75rem">None</code></td></tr>
+        <tr style="background:rgba(248,81,73,.04)"><td class="field-name">qa_report</td><td class="field-type">Optional[Dict]</td><td><span class="field-group" style="background:rgba(248,81,73,.2);color:#f85149">QA</span></td><td style="color:var(--muted)">QA raporu: {quality_score, issues, suggestions, approved, reasoning}</td><td><code style="color:#ff7b72;font-size:.75rem">None</code></td></tr>
+        <tr style="background:rgba(248,81,73,.04)"><td class="field-name">retry_count</td><td class="field-type">int</td><td><span class="field-group" style="background:rgba(248,81,73,.2);color:#f85149">QA</span></td><td style="color:var(--muted)">Kaç kez yeniden deneme yapıldığı; MAX_RETRY_ATTEMPTS=2 ile sınırlandırılmış</td><td><code style="color:#a5d6ff;font-size:.75rem">0</code></td></tr>
+        <tr><td class="field-name">execution_trace</td><td class="field-type">List[str]</td><td><span class="field-group">İZLEME</span></td><td style="color:var(--muted)">Her ajan adımının zaman damgalı log kayıtları listesi</td><td><code style="color:#a5d6ff;font-size:.75rem">[]</code></td></tr>
+        <tr><td class="field-name">error_log</td><td class="field-type">List[str]</td><td><span class="field-group">İZLEME</span></td><td style="color:var(--muted)">Araç hatalarının (Wikipedia bağlantı, JSON parse) biriktirildiği liste</td><td><code style="color:#a5d6ff;font-size:.75rem">[]</code></td></tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════ 05 CONFIG ═══════════════════ -->
+<div class="section" id="sec-config">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(210,153,34,.15);color:#d29922">⚙️</div>
+    05 — Konfigürasyon Parametreleri
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title" style="color:#d29922">Model & Kuantizasyon</div>
+      <table>
+        <thead><tr><th>Sabit</th><th>Değer</th><th>Açıklama</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">MODEL_ID</td><td class="cfg-val">"ytu-ce-cosmos/Turkish-Gemma-9b-v0.1"</td><td style="color:var(--muted)">HuggingFace model kimliği</td></tr>
+          <tr><td class="field-name">USE_4BIT_QUANTIZATION</td><td class="cfg-val">True</td><td style="color:var(--muted)">BitsAndBytes 4-bit NF4 kuantizasyon</td></tr>
+          <tr><td style="color:#8b949e;font-size:.75rem">bnb_4bit_quant_type</td><td class="cfg-val">"nf4"</td><td style="color:var(--muted)">Normal Float 4 kuantizasyon tipi</td></tr>
+          <tr><td style="color:#8b949e;font-size:.75rem">bnb_4bit_compute_dtype</td><td class="cfg-val">torch.float16</td><td style="color:var(--muted)">Hesaplama veri tipi</td></tr>
+          <tr><td style="color:#8b949e;font-size:.75rem">double_quant</td><td class="cfg-val">True</td><td style="color:var(--muted)">İkili kuantizasyon (ek sıkıştırma)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:#d29922">Sistem Limitleri</div>
+      <table>
+        <thead><tr><th>Sabit</th><th>Değer</th><th>Açıklama</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">MAX_RETRY_ATTEMPTS</td><td class="cfg-val">2</td><td style="color:var(--muted)">QA başarısızlığında max. yeniden deneme</td></tr>
+          <tr><td class="field-name">QUALITY_THRESHOLD</td><td class="cfg-val">6</td><td style="color:var(--muted)">0-10 skalasında minimum geçer kalite skoru</td></tr>
+          <tr><td class="field-name">MEMORY_WINDOW</td><td class="cfg-val">6</td><td style="color:var(--muted)">Hafızada tutulan tur sayısı (12 mesaj)</td></tr>
+          <tr><td class="field-name">WIKI_SUMMARY_MAX_CHARS</td><td class="cfg-val">1200</td><td style="color:var(--muted)">Wikipedia ham özet karakter sınırı</td></tr>
+          <tr><td class="field-name">WIKI_CONDENSED_MAX_CHARS</td><td class="cfg-val">500</td><td style="color:var(--muted)">Summarizer çıktısı karakter sınırı</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Token limits per agent -->
+  <div class="card" style="margin-top:16px">
+    <div class="card-title" style="color:#d29922">max_new_tokens — Ajan Bazında</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;padding-top:4px">
+      <div style="text-align:center;padding:12px 20px;background:var(--surface2);border-radius:8px;min-width:110px">
+        <div style="font-size:1.4rem;font-weight:700;color:#bc8cff">200</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:4px">Planner</div>
+      </div>
+      <div style="text-align:center;padding:12px 20px;background:var(--surface2);border-radius:8px;min-width:110px">
+        <div style="font-size:1.4rem;font-weight:700;color:#39d353">300</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:4px">Summarizer</div>
+      </div>
+      <div style="text-align:center;padding:12px 20px;background:var(--surface2);border-radius:8px;min-width:110px">
+        <div style="font-size:1.4rem;font-weight:700;color:#f778ba">200</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:4px">Math</div>
+      </div>
+      <div style="text-align:center;padding:12px 20px;background:var(--surface2);border-radius:8px;min-width:110px">
+        <div style="font-size:1.4rem;font-weight:700;color:#ffa657">200</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:4px">Chat</div>
+      </div>
+      <div style="text-align:center;padding:12px 20px;background:var(--surface2);border-radius:8px;min-width:110px">
+        <div style="font-size:1.4rem;font-weight:700;color:#58a6ff">380</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:4px">Answer Gen</div>
+      </div>
+      <div style="text-align:center;padding:12px 20px;background:var(--surface2);border-radius:8px;min-width:110px">
+        <div style="font-size:1.4rem;font-weight:700;color:#f85149">200</div>
+        <div style="font-size:.72rem;color:var(--muted);margin-top:4px">QA Checker</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 06 PROMPTS ═══════════════════ -->
+<div class="section" id="sec-prompts">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(240,136,62,.15);color:#f0883e">💬</div>
+    06 — Sistem Prompt Kitaplığı (Prompts sınıfı)
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-header">
+      <div class="prompt-name"><span style="color:#bc8cff">🗺️</span> Prompts.PLANNER</div>
+      <div class="prompt-tokens"><span class="badge badge-purple">PlannerAgent</span> &nbsp; max_tokens: 200</div>
+    </div>
+    <div class="prompt-body">
+      <pre>Görev analizi ve JSON plan üretimi.
+
+PLAN ŞEMASI çıktısı:
+{
+  <span style="color:#79c0ff">"task_type"</span>: <span style="color:#a5d6ff">"research | math | chat"</span>,
+  <span style="color:#79c0ff">"steps"</span>: [<span style="color:#a5d6ff">"search_wiki"</span>, <span style="color:#a5d6ff">"summarize"</span>, <span style="color:#a5d6ff">"generate_answer"</span>],
+  <span style="color:#79c0ff">"search_query"</span>: <span style="color:#a5d6ff">"Wikipedia arama terimi"</span>,
+  <span style="color:#79c0ff">"requires_summary"</span>: <span style="color:#ff7b72">true</span> | <span style="color:#ff7b72">false</span>,
+  <span style="color:#79c0ff">"complexity"</span>: <span style="color:#a5d6ff">"low | medium | high"</span>,
+  <span style="color:#79c0ff">"language"</span>: <span style="color:#a5d6ff">"tr"</span>,
+  <span style="color:#79c0ff">"intent"</span>: <span style="color:#a5d6ff">"kullanıcı niyetinin kısa açıklaması"</span>
+}
+
+<span class="comment">// research → steps: ["search_wiki","summarize","generate_answer"]</span>
+<span class="comment">// math     → steps: ["calculate","generate_answer"]</span>
+<span class="comment">// chat     → steps: ["generate_answer"]</span></pre>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-header">
+      <div class="prompt-name"><span style="color:#39d353">📝</span> Prompts.SUMMARIZER</div>
+      <div class="prompt-tokens"><span class="badge badge-green">SummarizerAgent</span> &nbsp; max_tokens: 300</div>
+    </div>
+    <div class="prompt-body">
+      <pre>İçerik özetleme uzmanı.
+
+Kurallar:
+  • En önemli <span style="color:#ff7b72">4-6</span> bilgiyi madde madde listele
+  • Her madde <span style="color:#ff7b72">1-2</span> cümle
+  • Anahtar kavramları, tarihleri, isimleri koru
+  • Gereksiz detayları at, Türkçe yaz
+
+Giriş: Makale başlığı + İçerik + Kullanıcı sorusu
+Çıkış: Odaklı madde listesi (≤500 karakter)</pre>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-header">
+      <div class="prompt-name"><span style="color:#58a6ff">✍️</span> Prompts.ANSWER_GENERATOR</div>
+      <div class="prompt-tokens"><span class="badge badge-blue">AnswerGeneratorAgent</span> &nbsp; max_tokens: 380</div>
+    </div>
+    <div class="prompt-body">
+      <pre>Uzman asistan cevap üretici.
+
+Kurallar:
+  • wiki_summary kullan (ham veri yerine)
+  • <span style="color:#ff7b72">5-8</span> cümle, akıcı paragraf
+  • Kaynak belirt (Wikipedia URL)
+  • Türkçe, açık ve doğru yaz
+  • Bilmediğin şeyi uydurma</pre>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-header">
+      <div class="prompt-name"><span style="color:#f778ba">🧮</span> Prompts.MATH</div>
+      <div class="prompt-tokens"><span class="badge" style="background:rgba(247,120,186,.2);color:#f778ba">MathAgent</span> &nbsp; max_tokens: 200</div>
+    </div>
+    <div class="prompt-body">
+      <pre>Matematik asistanı.
+
+Kurallar:
+  • Verilen ifadeyi hesapla
+  • Adım adım çözüm göster
+  • Sonucu <span style="color:#a5d6ff">"Sonuç: &lt;değer&gt;"</span> formatında sun</pre>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-header">
+      <div class="prompt-name"><span style="color:#ffa657">💬</span> Prompts.CHAT</div>
+      <div class="prompt-tokens"><span class="badge badge-yellow">ChatAgent</span> &nbsp; max_tokens: 200</div>
+    </div>
+    <div class="prompt-body">
+      <pre>Samimi sohbet asistanı.
+
+Kurallar:
+  • Kısa ve içten yanıt ver
+  • Konuşma geçmişini dikkate al (history parametresi)
+  • Türkçe yaz</pre>
+    </div>
+  </div>
+
+  <div class="prompt-card">
+    <div class="prompt-header">
+      <div class="prompt-name"><span style="color:#f85149">🔍</span> Prompts.QA_CHECKER</div>
+      <div class="prompt-tokens"><span class="badge badge-red">QualityCheckerAgent</span> &nbsp; max_tokens: 200</div>
+    </div>
+    <div class="prompt-body">
+      <pre>Kalite kontrol ajanı.
+
+RAPOR ŞEMASI çıktısı:
+{
+  <span style="color:#79c0ff">"quality_score"</span>: <span style="color:#ff7b72">0-10</span>,
+  <span style="color:#79c0ff">"issues"</span>: [<span style="color:#a5d6ff">"sorun1"</span>, ...],
+  <span style="color:#79c0ff">"suggestions"</span>: [<span style="color:#a5d6ff">"öneri1"</span>, ...],
+  <span style="color:#79c0ff">"approved"</span>: <span style="color:#ff7b72">true</span> | <span style="color:#ff7b72">false</span>,
+  <span style="color:#79c0ff">"reasoning"</span>: <span style="color:#a5d6ff">"kısa değerlendirme"</span>
+}
+
+<span class="comment">// approved = true → quality_score >= 6</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 07 QA ═══════════════════ -->
+<div class="section" id="sec-qa">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(248,81,73,.15);color:#f85149">🔍</div>
+    07 — QA Kalite Değerlendirme Sistemi
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title" style="color:#f85149">Puanlama Kriterleri</div>
+      <div class="score-row">
+        <div class="score-label">Soruyla ilgililik</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:100%;background:#58a6ff"></div></div>
+        <div class="score-pts">0 – 3 puan</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Doğruluk ve tutarlılık</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:100%;background:#3fb950"></div></div>
+        <div class="score-pts">0 – 3 puan</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Anlaşılırlık ve akıcılık</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:66%;background:#d29922"></div></div>
+        <div class="score-pts">0 – 2 puan</div>
+      </div>
+      <div class="score-row">
+        <div class="score-label">Bonus (aşırı detay / kaynak)</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:33%;background:#bc8cff"></div></div>
+        <div class="score-pts">0 – 2 puan</div>
+      </div>
+      <div class="score-row" style="border-top:1px solid var(--border);margin-top:8px">
+        <div class="score-label" style="color:#f85149">Yanıltıcı/boş içerik cezası</div>
+        <div class="score-bar-wrap"><div class="score-bar" style="width:66%;background:#f85149"></div></div>
+        <div class="score-pts">−2 puan</div>
+      </div>
+      <div style="margin-top:16px;padding:12px;background:rgba(248,81,73,.08);border:1px solid rgba(248,81,73,.2);border-radius:8px;font-size:.8rem;color:#f85149">
+        ⚠️ Onay eşiği: <strong>≥ 6 / 10</strong> — Altında kalırsa retry tetiklenir
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title" style="color:#f85149">QA Rapor Alanları</div>
+      <table>
+        <thead><tr><th>Alan</th><th>Tip</th><th>Açıklama</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">quality_score</td><td class="field-type">int</td><td style="color:var(--muted)">0-10 tam sayı puan</td></tr>
+          <tr><td class="field-name">issues</td><td class="field-type">List[str]</td><td style="color:var(--muted)">Tespit edilen sorunlar listesi</td></tr>
+          <tr><td class="field-name">suggestions</td><td class="field-type">List[str]</td><td style="color:var(--muted)">İyileştirme önerileri</td></tr>
+          <tr><td class="field-name">approved</td><td class="field-type">bool</td><td style="color:var(--muted)">true ise final_answer olarak yayımlanır</td></tr>
+          <tr><td class="field-name">reasoning</td><td class="field-type">str</td><td style="color:var(--muted)">Değerlendirmenin kısa gerekçesi</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:16px">
+        <div style="font-size:.78rem;color:var(--muted);margin-bottom:8px">Skor Bantları:</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <span class="badge badge-red">0-3: Zayıf</span>
+          <span class="badge badge-yellow">4-5: Orta</span>
+          <span class="badge badge-blue">6-7: İyi ✅</span>
+          <span class="badge badge-green">8-10: Mükemmel ✅</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 08 RETRY ═══════════════════ -->
+<div class="section" id="sec-retry">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(248,81,73,.15);color:#f85149">🔄</div>
+    08 — Retry Mekanizması
+  </div>
+  <div class="card">
+    <div style="text-align:center;padding:16px 0">
+      <div class="retry-flow">
+        <div class="retry-node" style="background:rgba(88,166,255,.15);border:1px solid rgba(88,166,255,.3);color:#58a6ff">
+          answer_gen<br><span style="font-size:.68rem;color:var(--muted)">draft_answer üretildi</span>
+        </div>
+        <div class="retry-arrow">→</div>
+        <div class="retry-node" style="background:rgba(248,81,73,.15);border:1px solid rgba(248,81,73,.3);color:#f85149">
+          qa_checker<br><span style="font-size:.68rem;color:var(--muted)">skor: X / 10</span>
+        </div>
+        <div class="retry-arrow">→</div>
+        <div style="display:flex;flex-direction:column;gap:12px">
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge badge-green">skor ≥ 6</span>
+            <div class="retry-arrow">→</div>
+            <div class="retry-node" style="background:rgba(63,185,80,.15);border:1px solid rgba(63,185,80,.3);color:#3fb950;min-width:80px">
+              END<br><span style="font-size:.68rem">final_answer</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge badge-red">skor &lt; 6</span>
+            <span style="color:var(--muted);font-size:.75rem">ve retry_count &lt; 2</span>
+            <div class="retry-arrow" style="color:#f85149">⤴</div>
+            <div class="retry-node" style="background:rgba(248,81,73,.1);border:1px dashed rgba(248,81,73,.3);color:#f85149;min-width:100px">
+              answer_gen<br><span style="font-size:.68rem">yeniden dene</span>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="badge badge-red">skor &lt; 6</span>
+            <span style="color:var(--muted);font-size:.75rem">ve retry_count = 2</span>
+            <div class="retry-arrow">→</div>
+            <div class="retry-node" style="background:rgba(210,153,34,.1);border:1px solid rgba(210,153,34,.3);color:#d29922;min-width:80px">
+              END<br><span style="font-size:.68rem">⚠️ uyarılı</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div style="background:var(--surface2);border-radius:8px;padding:14px;margin-top:8px">
+      <div style="font-size:.8rem;color:var(--muted);line-height:1.8">
+        <strong style="color:var(--text)">Retry tetiklendiğinde:</strong> &nbsp;
+        draft_answer = None yapılır → retry_count artırılır → answer_gen yeniden çalışır →
+        bu sefer qa_report.suggestions kullanılabilir (prompt bağlamında). &nbsp;
+        MAX_RETRY_ATTEMPTS = <strong style="color:#f85149">2</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 09 MEMORY ═══════════════════ -->
+<div class="section" id="sec-memory">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(63,185,80,.15);color:#3fb950">🧠</div>
+    09 — Konuşma Hafızası (ConversationMemory)
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title" style="color:#3fb950">Kayan Pencere Görselleştirme</div>
+      <div style="overflow-x:auto">
+        <div class="memory-vis" style="gap:4px">
+          <div class="mem-slot">
+            <div class="mem-block" style="height:50px;background:rgba(63,185,80,.3);color:#3fb950">T1</div>
+            <div class="mem-label">Tur 1</div>
+          </div>
+          <div class="mem-slot">
+            <div class="mem-block" style="height:50px;background:rgba(63,185,80,.3);color:#3fb950">T2</div>
+            <div class="mem-label">Tur 2</div>
+          </div>
+          <div class="mem-slot">
+            <div class="mem-block" style="height:50px;background:rgba(63,185,80,.3);color:#3fb950">T3</div>
+            <div class="mem-label">Tur 3</div>
+          </div>
+          <div class="mem-slot">
+            <div class="mem-block" style="height:50px;background:rgba(63,185,80,.3);color:#3fb950">T4</div>
+            <div class="mem-label">Tur 4</div>
+          </div>
+          <div class="mem-slot">
+            <div class="mem-block" style="height:50px;background:rgba(63,185,80,.3);color:#3fb950">T5</div>
+            <div class="mem-label">Tur 5</div>
+          </div>
+          <div class="mem-slot">
+            <div class="mem-block" style="height:50px;background:rgba(63,185,80,.5);color:#3fb950;border:2px solid #3fb950">T6</div>
+            <div class="mem-label">Tur 6</div>
+          </div>
+          <div class="mem-arrow">+</div>
+          <div class="mem-slot">
+            <div class="mem-block" style="height:50px;background:rgba(88,166,255,.3);color:#58a6ff;border:2px dashed #58a6ff">T7</div>
+            <div class="mem-label">Yeni</div>
+          </div>
+          <div class="mem-arrow">→</div>
+          <div style="display:flex;flex-direction:column;justify-content:center;gap:4px">
+            <div style="background:rgba(248,81,73,.15);border:1px dashed rgba(248,81,73,.4);border-radius:6px;padding:4px 10px;font-size:.72rem;color:#f85149">
+              T1 silinir (en eski)
+            </div>
+            <div style="background:rgba(63,185,80,.1);border:1px solid rgba(63,185,80,.2);border-radius:6px;padding:4px 10px;font-size:.72rem;color:#3fb950">
+              T2…T7 korunur
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:#3fb950">Hafıza API</div>
+      <table>
+        <thead><tr><th>Method</th><th>Parametre</th><th>Açıklama</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">__init__</td><td class="field-type">window=6</td><td style="color:var(--muted)">Pencere boyutu (tur sayısı)</td></tr>
+          <tr><td class="field-name">add()</td><td class="field-type">role, content</td><td style="color:var(--muted)">Yeni mesaj ekler; window*2 limitini kontrol eder</td></tr>
+          <tr><td class="field-name">get_context()</td><td class="field-type">→ str</td><td style="color:var(--muted)">"Kullanıcı: … Asistan: …" formatlı metin</td></tr>
+          <tr><td class="field-name">as_list()</td><td class="field-type">→ List[Dict]</td><td style="color:var(--muted)">LLM chat() history parametresi için uygun format</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px;padding:10px;background:rgba(63,185,80,.08);border-radius:6px;font-size:.78rem;color:var(--muted)">
+        Her tur = 2 mesaj (user + assistant) <br>
+        Maks. depolanacak mesaj: <strong style="color:#3fb950">window × 2 = 12 mesaj</strong>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 10 DATA FLOW ═══════════════════ -->
+<div class="section" id="sec-data">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(57,211,83,.15);color:#39d353">🔗</div>
+    10 — Veri Akışı Detayı (Research Yolu)
+  </div>
+  <div class="card">
+    <table>
+      <thead>
+        <tr><th>#</th><th>Ajan</th><th>Okuduğu Alan</th><th>Yazdığı Alan</th><th>Koşul</th></tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style="color:var(--dim)">1</td>
+          <td><span style="color:#bc8cff">🗺️ PlannerAgent</span></td>
+          <td><code class="field-name" style="font-size:.75rem">user_query, conversation_history</code></td>
+          <td><code class="field-name" style="font-size:.75rem">plan{}</code></td>
+          <td style="color:var(--muted)">Her zaman</td>
+        </tr>
+        <tr>
+          <td style="color:var(--dim)">2</td>
+          <td><span style="color:#58a6ff">🔀 RouterAgent</span></td>
+          <td><code class="field-name" style="font-size:.75rem">plan.task_type</code></td>
+          <td><code class="field-name" style="font-size:.75rem">execution_trace</code></td>
+          <td style="color:var(--muted)">Her zaman</td>
+        </tr>
+        <tr style="background:rgba(240,136,62,.04)">
+          <td style="color:var(--dim)">3</td>
+          <td><span style="color:#f0883e">📚 WikiSearchAgent</span></td>
+          <td><code class="field-name" style="font-size:.75rem">plan.search_query</code></td>
+          <td><code class="field-name" style="font-size:.75rem">wiki_raw{title,summary,url,char_count}</code></td>
+          <td style="color:#f0883e">task_type == "research"</td>
+        </tr>
+        <tr style="background:rgba(57,211,83,.04)">
+          <td style="color:var(--dim)">4</td>
+          <td><span style="color:#39d353">📝 SummarizerAgent</span></td>
+          <td><code class="field-name" style="font-size:.75rem">wiki_raw, plan.requires_summary, user_query</code></td>
+          <td><code class="field-name" style="font-size:.75rem">wiki_summary</code></td>
+          <td style="color:#39d353">requires_summary == True AND wiki_raw != None</td>
+        </tr>
+        <tr style="background:rgba(88,166,255,.04)">
+          <td style="color:var(--dim)">5</td>
+          <td><span style="color:#58a6ff">✍️ AnswerGeneratorAgent</span></td>
+          <td><code class="field-name" style="font-size:.75rem">wiki_summary → wiki_raw → "bulunamadı"</code></td>
+          <td><code class="field-name" style="font-size:.75rem">draft_answer</code></td>
+          <td style="color:var(--muted)">Öncelik sırası: summary > raw > fallback</td>
+        </tr>
+        <tr style="background:rgba(248,81,73,.04)">
+          <td style="color:var(--dim)">6</td>
+          <td><span style="color:#f85149">🔍 QualityCheckerAgent</span></td>
+          <td><code class="field-name" style="font-size:.75rem">draft_answer, user_query, retry_count</code></td>
+          <td><code class="field-name" style="font-size:.75rem">qa_report{}, final_answer, retry_count</code></td>
+          <td style="color:var(--muted)">Her zaman (son adım)</td>
+        </tr>
+        <tr style="background:rgba(63,185,80,.04)">
+          <td style="color:var(--dim)">7</td>
+          <td><span style="color:#3fb950">🧠 ConversationMemory</span></td>
+          <td><code class="field-name" style="font-size:.75rem">user_query, final_answer</code></td>
+          <td><code class="field-name" style="font-size:.75rem">_turns[] (kalıcı)</code></td>
+          <td style="color:#3fb950">process_query() bitişinde (graf dışı)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- ═══════════════════ 11 CLASSES ═══════════════════ -->
+<div class="section" id="sec-classes">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(188,140,255,.15);color:#bc8cff">🏗️</div>
+    11 — Sınıf Hiyerarşisi
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title">Temel Altyapı Sınıfları</div>
+      <table>
+        <thead><tr><th>Sınıf</th><th>Sorumluluk</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">ModelLoader</td><td style="color:var(--muted)">HuggingFace modeli ve tokenizer'ı yükler (4-bit quant opsiyonel)</td></tr>
+          <tr><td class="field-name">LLMEngine</td><td style="color:var(--muted)">generate() ve chat() metotlarıyla çıkarım motoru; @torch.inference_mode</td></tr>
+          <tr><td class="field-name">WikipediaSearcher</td><td style="color:var(--muted)">requests.Session ile TR Wikipedia API sarmalayıcısı</td></tr>
+          <tr><td class="field-name">SystemLogger</td><td style="color:var(--muted)">İkonlu, zaman damgalı yapılandırılmış konsol logger</td></tr>
+          <tr><td class="field-name">ConversationMemory</td><td style="color:var(--muted)">Kayan pencereli konuşma geçmişi yöneticisi</td></tr>
+          <tr><td class="field-name">Prompts</td><td style="color:var(--muted)">Tüm sistem promptlarını statik sabit olarak tutan kütüphane</td></tr>
+          <tr><td class="field-name">AgentState</td><td style="color:var(--muted)">TypedDict — tüm ajanlarda taşınan merkezi durum nesnesi</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="card">
+      <div class="card-title">Ajan Sınıfları</div>
+      <table>
+        <thead><tr><th>Sınıf</th><th>Ana Metot</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">PlannerAgent</td><td style="color:var(--muted)">run(state) → state + plan{}</td></tr>
+          <tr><td class="field-name">WikiSearchAgent</td><td style="color:var(--muted)">run(state) → state + wiki_raw{}</td></tr>
+          <tr><td class="field-name">SummarizerAgent</td><td style="color:var(--muted)">run(state) → state + wiki_summary</td></tr>
+          <tr><td class="field-name">MathAgent</td><td style="color:var(--muted)">run(state) → state + math_result</td></tr>
+          <tr><td class="field-name">AnswerGeneratorAgent</td><td style="color:var(--muted)">run(state) → state + draft_answer</td></tr>
+          <tr><td class="field-name">QualityCheckerAgent</td><td style="color:var(--muted)">run(state) → state + qa_report + final_answer</td></tr>
+          <tr><td class="field-name">AgentOrchestrator</td><td style="color:var(--muted)">process_query(str) → AgentState (orkeströr)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ 12 WIKI ═══════════════════ -->
+<div class="section" id="sec-wiki">
+  <div class="section-title">
+    <div class="icon" style="background:rgba(240,136,62,.15);color:#f0883e">📚</div>
+    12 — Wikipedia Entegrasyonu
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-title" style="color:#f0883e">API Akışı (2 aşama)</div>
+      <div style="font-size:.82rem;line-height:2;color:var(--muted)">
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span class="badge badge-blue">1</span>
+          <span>Sorgu temizliği: <code style="color:#a5d6ff">kimdir|nedir|hakkında|ne zaman|nerede</code> kaldırılır</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)">
+          <span class="badge badge-blue">2</span>
+          <span><strong>Başlık Arama:</strong> action=query&amp;list=search → ilk sonucun title'ı alınır</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;padding:8px 0">
+          <span class="badge badge-blue">3</span>
+          <span><strong>İçerik Çekme:</strong> action=query&amp;prop=extracts|info → exintro+explaintext</span>
+        </div>
+      </div>
+      <div style="margin-top:12px;background:var(--surface2);border-radius:8px;padding:12px">
+        <div style="font-size:.75rem;color:var(--muted)">Endpoint:</div>
+        <code style="color:#a5d6ff;font-size:.78rem">https://tr.wikipedia.org/w/api.php</code>
+        <div style="font-size:.75rem;color:var(--muted);margin-top:8px">User-Agent:</div>
+        <code style="color:#8b949e;font-size:.73rem">IndustrialAgentSystem/2.0 (LangGraph; Turkish NLP)</code>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-title" style="color:#f0883e">Döndürülen Veri Yapısı (wiki_raw)</div>
+      <table>
+        <thead><tr><th>Alan</th><th>Tip</th><th>Açıklama</th></tr></thead>
+        <tbody>
+          <tr><td class="field-name">title</td><td class="field-type">str</td><td style="color:var(--muted)">Makalenin Wikipedia başlığı</td></tr>
+          <tr><td class="field-name">summary</td><td class="field-type">str</td><td style="color:var(--muted)">İlk 1200 karakterlik giriş özeti</td></tr>
+          <tr><td class="field-name">url</td><td class="field-type">str</td><td style="color:var(--muted)">Makalenin tam URL'si (fullurl)</td></tr>
+          <tr><td class="field-name">char_count</td><td class="field-type">str</td><td style="color:var(--muted)">Ham extract karakter sayısı (log için)</td></tr>
+        </tbody>
+      </table>
+      <div style="margin-top:12px;padding:10px;background:rgba(240,136,62,.08);border-radius:6px;font-size:.78rem;color:var(--muted)">
+        <strong style="color:#f0883e">Hata Yönetimi:</strong> requests.HTTPError, Exception yakalanır;
+        hata error_log'a yazılır, wiki_raw = None döner → AnswerGeneratorAgent fallback mesaj üretir.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ FOOTER ═══════════════════ -->
+<div class="footer">
+  <div>Industrial Multi-Agent System v2.0 &nbsp;·&nbsp; LangGraph + Turkish-Gemma-9b &nbsp;·&nbsp; 20 Şubat 2026</div>
+  <div style="margin-top:6px">8 Ajan &nbsp;·&nbsp; 14 State Alanı &nbsp;·&nbsp; 7 Sistem Promptu &nbsp;·&nbsp; QA Retry Loop &nbsp;·&nbsp; Kayan Pencere Hafızası</div>
+</div>
+
+</div><!-- .page -->
+</body>
+</html>
