@@ -1,6 +1,6 @@
-# Industrial Multi-Agent System with LangGraph
+# Multi-Agent System with LangGraph
 
-> Endüstriyel seviyede Türkçe çok-ajanlı yapay zeka sistemi — LangGraph + Turkish-Gemma-9b
+> Türkçe çok-ajanlı yapay zeka sistemi — LangGraph + Turkish-Gemma-9b
 
 **v2.0** · Python 3.10+ · LangGraph · HuggingFace Transformers
 
